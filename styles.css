@@ -1,0 +1,27 @@
+body {
+    margin: 0px;
+    overflow: hidden;
+    background-color: #abcdbb;
+}
+
+text {
+    font-family: 'Poppins', sans-serif;
+    fill: #8E8883;
+}
+
+h1 {
+    text-align: center;
+    font-family: 'Poppins', sans-serif;
+    color: #635F5D;
+}
+  
+.solid {
+    stroke: white;
+    stroke-width: 0.6;
+}
+
+.axis text,
+.slider text {
+    font-size: 0.9em;
+    fill: #8E8883;
+}
