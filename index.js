@@ -29,6 +29,7 @@ let internetData;
 const idMapping = {};
 const data = {};
 
+
 // 更新地圖數據
 const updataData = (topology, economy, year, internet) => {
     const filteredData = economy.filter(d => +d[' Year '] === year);
@@ -38,6 +39,22 @@ const updataData = (topology, economy, year, internet) => {
         d.GNI = +d[' Per capita GNI '];
         d.alpha3 = alpha3;
         data[alpha3] = d.GNI;
+    });
+
+    const GNIbyCode = {};
+    economy.filter(d => +d[' Year '] >= 1980 && +d[' Year '] <= 2020).forEach(d => {
+        const alpha3 = idMapping[d[' CountryID '].padStart(3, '0')];
+        d.Year = +d[' Year '];
+        d.GNI = +d[' Per capita GNI '];
+        d.alpha3 = alpha3;
+
+        if (!GNIbyCode[alpha3]) {
+            GNIbyCode[alpha3] = [];
+        }
+        GNIbyCode[alpha3].push({
+            Year: d.Year,
+            GNI: +d.GNI
+        });
     });
 
     const mouseover = function(d) {
@@ -76,7 +93,8 @@ const updataData = (topology, economy, year, internet) => {
         .on("click", function(event, d) {
             // 建議用iso3去找對應的數據
             const countryInternet = internet.filter(item => item['Code'] === d.properties.iso3);
-            updateGraph(countryInternet)
+            const countryGNI = GNIbyCode[d.properties.iso3];
+            updateGraph(countryInternet, countryGNI)
         });
 
 };
@@ -92,13 +110,14 @@ const graphSvg = svg.append('g')
     .attr('transform', `translate(${margin.left}, ${margin.top})`)
     .style('display', 'none');
 
-const updateGraph = (countryInternet) => {
+const updateGraph = (countryInternet, countryGNI) => {
     graphSvg.selectAll('*').remove();
-
-    const years = countryInternet.map(d => d.Year);
-    console.log(years)
-    if (countryInternet.length > 0){
-        console.log(countryInternet)
+    
+    if (countryInternet.length > 0 && countryGNI.length > 0){
+        const internetYears = countryInternet.map(d => String(d.Year));
+        const GNIYears = new Set(countryGNI.map(d => String(d.Year)));
+        const years = Array.from(new Set([...internetYears, ...GNIYears])).sort();
+        console.log(years)
         graphSvg.append("rect")
             .attr("fill", "white")
             .attr("stroke", "#aaa")
@@ -136,21 +155,6 @@ const updateGraph = (countryInternet) => {
             .attr('text-anchor', 'end')
             .text('Internet Users(%)');
 
-        
-        const z = d3.scaleLinear().range([innerHeight, 0]);
-        z.domain([0, d3.max(countryInternet, d => d['No. of Internet Users'])]);
-            
-        charts.append('g')
-            .attr('transform', `translate(${innerWidth}, 0)`)
-            .call(d3.axisRight(z))
-            .append('text')
-            .attr('fill', '#000')
-            .attr('x', 40)
-            .attr('y', -20)
-            .attr('dy', '0.71em')
-            .attr('text-anchor', 'end')
-            .text('No. of Internet Users');
-        
         const bars = charts.append('g')
             .selectAll('.bar')
             .data(countryInternet)
@@ -161,6 +165,32 @@ const updateGraph = (countryInternet) => {
             .attr('width', x.bandwidth())
             .attr('height', d => innerHeight - y(d['Internet Users(%)']))
             .attr('fill', 'steelblue');
+
+        const z = d3.scaleLinear().range([innerHeight, 0]);
+        z.domain([0, d3.max(countryGNI, d => +d['GNI'])]);
+        
+        charts.append('g')
+            .attr('transform', `translate(${innerWidth}, 0)`)
+            .call(d3.axisRight(z))
+            .append('text')
+            .attr('fill', '#000')
+            .attr('x', 10)
+            .attr('y', -20)
+            .attr('dy', '0.71em')
+            .attr('text-anchor', 'end')
+            .text('GNI');
+        
+        const line = d3.line()
+            .x(d => x(String(d.Year)) + x.bandwidth() / 2)
+            .y(d => z(d['GNI']));
+
+        const lines = charts.append('path')
+            .datum(countryGNI)
+            .attr('class', 'line')
+            .attr('d', line)
+            .attr('stroke', 'red')
+            .attr('fill', 'none');
+
         
         graphSvg.style('display', 'block');
         
