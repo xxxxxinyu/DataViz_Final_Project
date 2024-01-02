@@ -100,7 +100,7 @@ const updataData = (topology, economy, year, internet) => {
 };
 
 //小圖表
-const graphMargin = {top: 30, bottom: 50, left: 50, right: 50},
+const graphMargin = {top: 30, bottom: 60, left: 50, right: 50, tab: 200},
     graphWidth = width/2,
     graphHeight = height/2;
 const innerWidth = graphWidth - graphMargin.left - graphMargin.right,
@@ -190,11 +190,34 @@ const updateGraph = (countryInternet, countryGNI) => {
             .attr('d', line)
             .attr('stroke', 'red')
             .attr('fill', 'none');
+    
+        // Legend for Internet Users(%)
+        charts.append("rect")
+            .attr("x", graphMargin.left)
+            .attr("y", innerHeight + graphMargin.bottom - 20) // Adjusted y position
+            .attr("width", 10)
+            .attr("height", 10)
+            .style("fill", "steelblue");
 
-        
-        graphSvg.style('display', 'block');
-        
-        
+        charts.append("text")
+            .attr("x", graphMargin.left+20)
+            .attr("y", innerHeight + graphMargin.bottom - 10) // Adjusted y position
+            .text("Internet Users(%)");
+
+        // Legend for GNI
+        charts.append("rect")
+            .attr("x", graphMargin.left+graphMargin.tab)
+            .attr("y", innerHeight + graphMargin.bottom - 20) // Adjusted y position
+            .attr("width", 10)
+            .attr("height", 10)
+            .style("fill", "red");
+
+        charts.append("text")
+            .attr("x", graphMargin.left+20+graphMargin.tab)
+            .attr("y", innerHeight + graphMargin.bottom - 10) // Adjusted y position
+            .text("GNI");
+
+        graphSvg.style('display', 'block'); 
     }
     else{
         graphSvg.style('display', 'none');
