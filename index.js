@@ -2,7 +2,7 @@ const svg = d3.select('svg');
 const width = +svg.attr('width');
 const height = +svg.attr('height');
 
-const margin = {top: 80, right: 20, bottom: 20, left: 100};
+const margin = {top: 80, right: 20, bottom: 20, left: 150};
 
 const g = svg.append('g')
     .attr('transform', `translate(${margin.left}, ${margin.top})`);
@@ -38,6 +38,7 @@ const updataData = (topology, economy, year, internet) => {
         d.Year = +d[' Year '];
         d.GNI = +d[' Per capita GNI '];
         d.alpha3 = alpha3;
+        d.country = d[' Country ']
         data[alpha3] = d.GNI;
     });
 
@@ -67,6 +68,15 @@ const updataData = (topology, economy, year, internet) => {
             .duration(100)
             .style("opacity", 1)
             .style("stroke", "black")
+
+        // Country Name Label
+        d3.select("#country-name")
+            .attr('left', '1000px')
+            .attr('top', '200px')
+            .style("font-size", '16px')
+            .text(d.toElement.__data__.properties.gis_name)
+            .style("color", "white");
+        d3.select("#country-name").classed("hidden", false);
     };
     const mouseleave = function(d) {
         d3.selectAll(".countries")
@@ -79,6 +89,7 @@ const updataData = (topology, economy, year, internet) => {
             .duration(100)
             .style("opacity", 1)
             .style("stroke", "transparent")
+        d3.select("#country-name").classed("hidden", true);
     };
 
     poly.selectAll("path")
@@ -100,11 +111,11 @@ const updataData = (topology, economy, year, internet) => {
 };
 
 //小圖表
-const graphMargin = {top: 30, bottom: 60, left: 50, right: 50, tab: 200},
+const graphMargin = {top: 55, bottom: 60, left: 60, right: 50, tab: 200},
     graphWidth = width/2,
     graphHeight = height/2;
-const innerWidth = graphWidth - graphMargin.left - graphMargin.right,
-    innerHeight = graphHeight - graphMargin.top - graphMargin.bottom;
+const innerWidth = graphWidth - graphMargin.left - graphMargin.right - 25,
+    innerHeight = graphHeight - graphMargin.top - graphMargin.bottom - 25;
 const graphSvg = svg.append('g')
     .attr('class', 'graph')
     .attr('transform', `translate(${margin.left}, ${margin.top})`)
@@ -217,12 +228,37 @@ const updateGraph = (countryInternet, countryGNI) => {
             .attr("y", innerHeight + graphMargin.bottom - 10) // Adjusted y position
             .text("GNI");
 
-        graphSvg.style('display', 'block'); 
+        graphSvg.style('display', 'block');
+
+        // close barChart
+        const closeBotton = graphSvg.append('g')
+        .attr('id', 'close-button')
+        .attr('transform', `translate(${graphMargin.left + innerWidth + 25}, ${graphMargin.top - 45})`)
+        .style('cursor', 'pointer')
+        .on('click', function() {
+            graphSvg.style("display", "none");
+        });
+
+        closeBotton.append('rect')
+        .attr('width', 25)
+        .attr('height', 25)
+        .attr('rx', 5)
+        .attr('ry', 5)
+        .attr('fill', '#635F5D');
+
+        closeBotton.append('text')
+        .text('✖')
+        .attr('x', 6)
+        .attr('y', 18)
+        .attr('font-size', '15px')
+        .style('fill', 'red');
     }
     else{
         graphSvg.style('display', 'none');
     };
 };
+
+
 //------------------------------//
 
 const dataURL = "Global Economy Indicators.csv"; 
