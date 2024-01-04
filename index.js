@@ -150,38 +150,34 @@ const graphSvg = svg.append('g')
 
 const updateGraph = (countryName, countryInternet, countryGNI, locationX, locationY) => {
     graphSvg.selectAll('*').remove();
-    console.log(locationX, locationY)
     if (countryInternet.length > 0 && countryGNI.length > 0){
-        
         const internetYears = countryInternet.map(d => String(d.Year));
         const GNIYears = new Set(countryGNI.map(d => String(d.Year)));
         const years = Array.from(new Set([...internetYears, ...GNIYears])).sort();
    
         //Box location
-        if (locationX+graphWidth > width-margin.left-margin.right)
-            if (locationX-graphWidth < margin.left)
+        if (locationX + graphWidth > width - margin.left - margin.right)
+            if (locationX - graphWidth < margin.left)
                 locationX = margin.left;
             else
-                locationX = locationX-graphWidth;
+                locationX = locationX - graphWidth;
             
-        if (locationY+graphHeight > height-margin.top-margin.bottom)
-            if (locationY-graphHeight < margin.top)
+        if (locationY + graphHeight > height - margin.top - margin.bottom)
+            if (locationY - graphHeight < margin.top)
                 locationY = margin.top;
             else 
-                locationY = locationY-graphHeight;
+                locationY = locationY - graphHeight;
         
         graphSvg.transition()
             .duration(0) // Set the duration of the transition in milliseconds
             .attr('transform', `translate(${locationX}, ${locationY})`);
 
         graphSvg.append("rect")
-            .attr("fill", "#F3F3F3")
-            .attr("stroke", "#aaa")
-            .attr("rx", 10)
-            .attr("ry", 10)
+            .attr('rx', 10)
+            .attr('ry', 10)
+            .attr("class", "graph-background")
             .attr("width", graphWidth)
-            .attr("height", graphHeight)
-            .style("filter", "url(#drop-shadow)");
+            .attr("height", graphHeight);
         
         //Add shadow for box
         graphSvg.append("defs")
@@ -199,13 +195,10 @@ const updateGraph = (countryName, countryInternet, countryGNI, locationX, locati
 
         //Label
         const graphLabel = graphSvg.append('g')
-            .attr('class', 'graph-label')
             .attr('transform', `translate(${graphWidth / 2}, 30)`);
         graphLabel.append('text')
-            .attr('text-anchor', 'middle')
-            .text(countryName)
-            .style('font-size', '18px')
-            .style('font-weight', 'bold');
+            .attr('class', 'text-label')
+            .text(countryName);
 
         const charts = graphSvg.append('g')
             .attr("width", innerWidth)
@@ -230,10 +223,11 @@ const updateGraph = (countryName, countryInternet, countryGNI, locationX, locati
             .call(d3.axisLeft(y))
             .append('text')
             .attr('fill', '#000')
-            .attr('x', 40)
+            .attr('x', 0)
             .attr('y', -20)
             .attr('dy', '0.71em')
-            .attr('text-anchor', 'end')
+            .attr('text-anchor', 'middle')
+            .attr('font-weight', 'bold')
             .text('Internet Users(%)');
 
         const bars = charts.append('g')
@@ -245,7 +239,6 @@ const updateGraph = (countryName, countryInternet, countryGNI, locationX, locati
             .attr('y', d => y(d['Internet Users(%)']))
             .attr('width', x.bandwidth())
             .attr('height', d => innerHeight - y(d['Internet Users(%)']))
-            .attr('fill', '#FF997C');
 
         const z = d3.scaleLinear().range([innerHeight, 0]);
         z.domain([0, d3.max(countryGNI, d => +d['GNI'])]);
@@ -255,10 +248,11 @@ const updateGraph = (countryName, countryInternet, countryGNI, locationX, locati
             .call(d3.axisRight(z))
             .append('text')
             .attr('fill', '#000')
-            .attr('x', 35)
+            .attr('x', 0)
             .attr('y', -20)
             .attr('dy', '0.71em')
-            .attr('text-anchor', 'end')
+            .attr('text-anchor', 'middle')
+            .attr('font-weight', 'bold')
             .text('Per capita GNI');
         
         const line = d3.line()
@@ -268,13 +262,11 @@ const updateGraph = (countryName, countryInternet, countryGNI, locationX, locati
         const lines = charts.append('path')
             .datum(countryGNI)
             .attr('class', 'line')
-            .attr('d', line)
-            .attr('stroke', '#964F4C')
-            .attr('fill', 'none');
+            .attr('d', line);
     
         //Legends
         const legendData = ["Internet Users(%)", "Per capita GNI"];
-        const legendColors = ['#FF997C', '#964F4C'];
+        const legendColors = ['#ECD5BB', '#54627B'];
 
         const legend = graphSvg.append('g')
             .attr('class', 'legend')

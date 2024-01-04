@@ -25,3 +25,25 @@ h1 {
     font-size: 0.9em;
     fill: #8E8883;
 }
+
+.graph-background {
+    fill: #FFFFFF;
+    stroke: #000000;
+    filter: url(#drop-shadow);
+}
+
+.text-label {
+    text-anchor: middle;
+    font-size: 18px;
+    font-weight: bold;
+    fill:#710117;
+}
+
+.bar {
+    fill: #ECD5BB;
+}
+
+.line {
+    stroke: #54627B;
+    fill: none;
+}
