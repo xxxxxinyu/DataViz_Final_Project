@@ -29,6 +29,12 @@ let internetData;
 const idMapping = {};
 const data = {};
 
+const tooltip = d3.select("body")
+  .append("div")
+  .attr("class", "tooltip")
+  .style("position", "absolute")
+  .style("opacity", 0)
+  .style("font-weight", "bold");
 
 // 更新地圖數據
 const updataData = (topology, economy, year, internet) => {
@@ -101,41 +107,105 @@ const updataData = (topology, economy, year, internet) => {
             .attr("class", function(d){ return "countries" })
         .on("mouseover", mouseover )
         .on("mouseleave", mouseleave )
+        .on("mousemove", function(event, d) {
+            const countryName = d.properties.gis_name;
+            if (countryName !== undefined) {
+                tooltip.html(`&nbsp;${countryName}&nbsp;`)
+                    .style("left", function() {
+                        return (event.pageX + 10) + "px";
+                    })
+                    .style("top", (event.pageY - 20) + "px")
+                    .style("background-color", "#1A1F23")
+                    .style("color", "#EBEAE5")
+                    .style("border-radius", "5px");
+                tooltip.transition()
+                    .duration(200)
+                    .style("opacity", 0.9);
+            }
+        })
+        .on("mouseout", () => {
+            tooltip.transition()
+              .duration(500)
+              .style("opacity", 0);
+        })
         .on("click", function(event, d) {
             // 建議用iso3去找對應的數據
+            const countryName = d.properties.gis_name;
             const countryInternet = internet.filter(item => item['Code'] === d.properties.iso3);
             const countryGNI = GNIbyCode[d.properties.iso3];
-            updateGraph(countryInternet, countryGNI)
+            updateGraph(countryName, countryInternet, countryGNI, event.pageX, event.pageY-margin.top-margin.bottom)
         });
 
 };
 
 //小圖表
-const graphMargin = {top: 55, bottom: 60, left: 60, right: 50, tab: 200},
+const graphMargin = {top: 70, bottom: 50, left: 60, right: 50, tab: 200},
     graphWidth = width/2,
     graphHeight = height/2;
 const innerWidth = graphWidth - graphMargin.left - graphMargin.right - 25,
     innerHeight = graphHeight - graphMargin.top - graphMargin.bottom - 25;
 const graphSvg = svg.append('g')
     .attr('class', 'graph')
-    .attr('transform', `translate(${margin.left}, ${margin.top})`)
     .style('display', 'none');
 
-const updateGraph = (countryInternet, countryGNI) => {
+const updateGraph = (countryName, countryInternet, countryGNI, locationX, locationY) => {
     graphSvg.selectAll('*').remove();
-    
+    console.log(locationX, locationY)
     if (countryInternet.length > 0 && countryGNI.length > 0){
+        
         const internetYears = countryInternet.map(d => String(d.Year));
         const GNIYears = new Set(countryGNI.map(d => String(d.Year)));
         const years = Array.from(new Set([...internetYears, ...GNIYears])).sort();
-        console.log(years)
+   
+        //Box location
+        if (locationX+graphWidth > width-margin.left-margin.right)
+            if (locationX-graphWidth < margin.left)
+                locationX = margin.left;
+            else
+                locationX = locationX-graphWidth;
+            
+        if (locationY+graphHeight > height-margin.top-margin.bottom)
+            if (locationY-graphHeight < margin.top)
+                locationY = margin.top;
+            else 
+                locationY = locationY-graphHeight;
+        
+        graphSvg.transition()
+            .duration(0) // Set the duration of the transition in milliseconds
+            .attr('transform', `translate(${locationX}, ${locationY})`);
+
         graphSvg.append("rect")
-            .attr("fill", "white")
+            .attr("fill", "#F3F3F3")
             .attr("stroke", "#aaa")
-            .attr("x", 0)
-            .attr("y", 0)
+            .attr("rx", 10)
+            .attr("ry", 10)
             .attr("width", graphWidth)
-            .attr("height", graphHeight);
+            .attr("height", graphHeight)
+            .style("filter", "url(#drop-shadow)");
+        
+        //Add shadow for box
+        graphSvg.append("defs")
+            .append("filter")
+            .attr("id", "drop-shadow")
+            .attr("height", "150%") 
+            .attr("width", "150%")
+            .attr("x", "-15%")
+            .attr("y", "-15%")
+            .append("feDropShadow")
+            .attr("dx", 0)
+            .attr("dy", 0)
+            .attr("stdDeviation", 10) 
+            .attr("flood-color", "#555"); 
+
+        //Label
+        const graphLabel = graphSvg.append('g')
+            .attr('class', 'graph-label')
+            .attr('transform', `translate(${graphWidth / 2}, 30)`);
+        graphLabel.append('text')
+            .attr('text-anchor', 'middle')
+            .text(countryName)
+            .style('font-size', '18px')
+            .style('font-weight', 'bold');
 
         const charts = graphSvg.append('g')
             .attr("width", innerWidth)
@@ -175,7 +245,7 @@ const updateGraph = (countryInternet, countryGNI) => {
             .attr('y', d => y(d['Internet Users(%)']))
             .attr('width', x.bandwidth())
             .attr('height', d => innerHeight - y(d['Internet Users(%)']))
-            .attr('fill', 'steelblue');
+            .attr('fill', '#FF997C');
 
         const z = d3.scaleLinear().range([innerHeight, 0]);
         z.domain([0, d3.max(countryGNI, d => +d['GNI'])]);
@@ -185,11 +255,11 @@ const updateGraph = (countryInternet, countryGNI) => {
             .call(d3.axisRight(z))
             .append('text')
             .attr('fill', '#000')
-            .attr('x', 10)
+            .attr('x', 35)
             .attr('y', -20)
             .attr('dy', '0.71em')
             .attr('text-anchor', 'end')
-            .text('GNI');
+            .text('Per capita GNI');
         
         const line = d3.line()
             .x(d => x(String(d.Year)) + x.bandwidth() / 2)
@@ -199,41 +269,40 @@ const updateGraph = (countryInternet, countryGNI) => {
             .datum(countryGNI)
             .attr('class', 'line')
             .attr('d', line)
-            .attr('stroke', 'red')
+            .attr('stroke', '#964F4C')
             .attr('fill', 'none');
     
-        // Legend for Internet Users(%)
-        charts.append("rect")
-            .attr("x", graphMargin.left)
-            .attr("y", innerHeight + graphMargin.bottom - 20) // Adjusted y position
-            .attr("width", 10)
-            .attr("height", 10)
-            .style("fill", "steelblue");
+        //Legends
+        const legendData = ["Internet Users(%)", "Per capita GNI"];
+        const legendColors = ['#FF997C', '#964F4C'];
 
-        charts.append("text")
-            .attr("x", graphMargin.left+20)
-            .attr("y", innerHeight + graphMargin.bottom - 10) // Adjusted y position
-            .text("Internet Users(%)");
+        const legend = graphSvg.append('g')
+            .attr('class', 'legend')
+            .attr('transform', `translate(${graphWidth/4}, ${graphHeight - graphMargin.bottom+15})`);
 
-        // Legend for GNI
-        charts.append("rect")
-            .attr("x", graphMargin.left+graphMargin.tab)
-            .attr("y", innerHeight + graphMargin.bottom - 20) // Adjusted y position
-            .attr("width", 10)
-            .attr("height", 10)
-            .style("fill", "red");
+        const legendItems = legend.selectAll('.legend-item')
+            .data(legendData)
+            .enter().append('g')
+            .attr('class', 'legend-item')
+            .attr('transform', (d, i) => `translate(${i * graphMargin.tab}, 0)`);
 
-        charts.append("text")
-            .attr("x", graphMargin.left+20+graphMargin.tab)
-            .attr("y", innerHeight + graphMargin.bottom - 10) // Adjusted y position
-            .text("GNI");
+        legendItems.append('rect')
+            .attr('width', 15)
+            .attr('height', 15)
+            .attr('fill', (d, i) => legendColors[i]);
+
+        legendItems.append('text')
+            .attr('x', 20)
+            .attr('y', 12)
+            .text(d => d)
+            .style('font-size', '12px');
 
         graphSvg.style('display', 'block');
 
         // close barChart
         const closeBotton = graphSvg.append('g')
         .attr('id', 'close-button')
-        .attr('transform', `translate(${graphMargin.left + innerWidth + 25}, ${graphMargin.top - 45})`)
+        .attr('transform', `translate(${graphMargin.left + innerWidth+35}, ${graphMargin.top - 60})`)
         .style('cursor', 'pointer')
         .on('click', function() {
             graphSvg.style("display", "none");
