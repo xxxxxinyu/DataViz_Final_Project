@@ -17,7 +17,7 @@ const path = d3.geoPath().projection(projection);
 
 const color = d3.scaleThreshold()
     .domain([0, 1000, 2500, 5000, 10000, 20000, 50000, 100000])
-    .range(d3.schemeBlues[9])
+    .range(d3.schemeYlGn[9])
     .unknown("#E6E6E6");
 
 const poly = g.append("g");
@@ -74,15 +74,6 @@ const updataData = (topology, economy, year, internet) => {
             .duration(100)
             .style("opacity", 1)
             .style("stroke", "black")
-
-        // Country Name Label
-        d3.select("#country-name")
-            .attr('left', '1000px')
-            .attr('top', '200px')
-            .style("font-size", '16px')
-            .text(d.toElement.__data__.properties.gis_name)
-            .style("color", "white");
-        d3.select("#country-name").classed("hidden", false);
     };
     const mouseleave = function(d) {
         d3.selectAll(".countries")
@@ -95,7 +86,6 @@ const updataData = (topology, economy, year, internet) => {
             .duration(100)
             .style("opacity", 1)
             .style("stroke", "transparent")
-        d3.select("#country-name").classed("hidden", true);
     };
 
     poly.selectAll("path")
@@ -238,7 +228,7 @@ const updateGraph = (countryName, countryInternet, countryGNI, locationX, locati
             .attr('x', d => x(String(d.Year)))
             .attr('y', d => y(d['Internet Users(%)']))
             .attr('width', x.bandwidth())
-            .attr('height', d => innerHeight - y(d['Internet Users(%)']))
+            .attr('height', d => innerHeight - y(d['Internet Users(%)']));
 
         const z = d3.scaleLinear().range([innerHeight, 0]);
         z.domain([0, d3.max(countryGNI, d => +d['GNI'])]);
@@ -266,7 +256,7 @@ const updateGraph = (countryName, countryInternet, countryGNI, locationX, locati
     
         //Legends
         const legendData = ["Internet Users(%)", "Per capita GNI"];
-        const legendColors = ['#ECD5BB', '#54627B'];
+        const legendColors = ['#cadbc9', '#3c5737'];
 
         const legend = graphSvg.append('g')
             .attr('class', 'legend')
@@ -305,14 +295,14 @@ const updateGraph = (countryName, countryInternet, countryGNI, locationX, locati
         .attr('height', 25)
         .attr('rx', 5)
         .attr('ry', 5)
-        .attr('fill', '#635F5D');
+        .attr('fill', '#ece4cb');
 
         closeBotton.append('text')
         .text('✖')
         .attr('x', 6)
         .attr('y', 18)
         .attr('font-size', '15px')
-        .style('fill', 'red');
+        .style('fill', '#635F5D');
     }
     else{
         graphSvg.style('display', 'none');

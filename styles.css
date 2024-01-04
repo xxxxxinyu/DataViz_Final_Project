@@ -1,7 +1,7 @@
 body {
     margin: 0px;
     overflow: hidden;
-    background-color: #abcdbb;
+    background-color: #ece4cb;
 }
 
 text {
@@ -36,14 +36,14 @@ h1 {
     text-anchor: middle;
     font-size: 18px;
     font-weight: bold;
-    fill:#710117;
+    fill:#635F5D;
 }
 
 .bar {
-    fill: #ECD5BB;
+    fill: #cadbc9;
 }
 
 .line {
-    stroke: #54627B;
+    stroke: #3c5737;
     fill: none;
 }
