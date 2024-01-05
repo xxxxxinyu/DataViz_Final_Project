@@ -47,3 +47,7 @@ h1 {
     stroke: #3c5737;
     fill: none;
 }
+
+path {
+    transition: all 0.5s;
+}
