@@ -231,8 +231,8 @@ const updateGraph = (countryName, countryInternet, countryGNI, locationX, locati
             .attr('height', d => innerHeight - y(d['Internet Users(%)']));
 
         const z = d3.scaleLinear().range([innerHeight, 0]);
-        z.domain([0, d3.max(countryGNI, d => +d['GNI'])]);
-        
+        //z.domain([0, d3.max(countryGNI, d => +d['GNI'])]);
+        z.domain([0, 250000]);
         charts.append('g')
             .attr('transform', `translate(${innerWidth}, 0)`)
             .call(d3.axisRight(z))
@@ -247,7 +247,7 @@ const updateGraph = (countryName, countryInternet, countryGNI, locationX, locati
         
         const line = d3.line()
             .x(d => x(String(d.Year)) + x.bandwidth() / 2)
-            .y(d => z(d['GNI']));
+            .y(d => z(+d['GNI']));
 
         const lines = charts.append('path')
             .datum(countryGNI)
@@ -256,7 +256,7 @@ const updateGraph = (countryName, countryInternet, countryGNI, locationX, locati
     
         //Legends
         const legendData = ["Internet Users(%)", "Per capita GNI"];
-        const legendColors = ['#cadbc9', '#58a9f0'];
+        const legendColors = ['#cadbc9', '#053f72'];
 
         const legend = graphSvg.append('g')
             .attr('class', 'legend')
