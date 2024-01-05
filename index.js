@@ -232,7 +232,7 @@ const updateGraph = (countryName, countryInternet, countryGNI, locationX, locati
 
         const z = d3.scaleLinear().range([innerHeight, 0]);
         //z.domain([0, d3.max(countryGNI, d => +d['GNI'])]);
-        z.domain([0, 250000]);
+        z.domain([0, 110000]);
         charts.append('g')
             .attr('transform', `translate(${innerWidth}, 0)`)
             .call(d3.axisRight(z))
