@@ -256,7 +256,7 @@ const updateGraph = (countryName, countryInternet, countryGNI, locationX, locati
     
         //Legends
         const legendData = ["Internet Users(%)", "Per capita GNI"];
-        const legendColors = ['#cadbc9', '#053f72'];
+        const legendColors = ['#bed4e7', '#3d9838'];
 
         const legend = graphSvg.append('g')
             .attr('class', 'legend')
